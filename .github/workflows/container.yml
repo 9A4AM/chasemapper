@@ -30,7 +30,7 @@ jobs:
             runner: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Declare platform
         run: |
@@ -38,7 +38,7 @@ jobs:
           echo "PLATFORM=${platform//\//-}" >> $GITHUB_ENV
 
       - name: Cache wheels
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/wheels
           key: wheels-${{ env.PLATFORM }}-${{ github.run_id }}
@@ -49,13 +49,13 @@ jobs:
         run: ls -lR ${{ github.workspace }}/wheels || true
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Setup Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -63,13 +63,13 @@ jobs:
 
       - name: Calculate container metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
 
       - name: Build stage
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
@@ -81,7 +81,7 @@ jobs:
 
       - name: Final stage and push by digest
         id: final
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload digest
         if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ env.PLATFORM }}
           path: /tmp/digests/*
@@ -118,7 +118,7 @@ jobs:
     needs: [build]
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/digests
           pattern: digests-*
@@ -126,15 +126,15 @@ jobs:
 
       - name: Calculate container metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
 
       - name: Setup Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
